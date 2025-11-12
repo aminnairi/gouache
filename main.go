@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/charmbracelet/lipgloss"
+	"github.com/charmbracelet/lipgloss/table"
 	"github.com/jessevdk/go-flags"
 )
 
@@ -154,20 +155,34 @@ func main() {
 	}
 
 	if options.WithStatus {
-		// TODO: use lipgloss here
-		fmt.Println("HTTP/2", response.Status)
+		if response.StatusCode >= 100 && response.StatusCode <= 199 {
+			style := lipgloss.NewStyle().Foreground(lipgloss.Color("#000000")).Background(lipgloss.Color("#FFFFFF")).Bold(true).PaddingLeft(1).PaddingRight(1)
+			fmt.Println("HTTP/2", style.Render(response.Status))
+		} else if response.StatusCode >= 200 && response.StatusCode <= 299 {
+			style := lipgloss.NewStyle().Foreground(lipgloss.Color("#FFFFFF")).Background(lipgloss.Color("#1B5E20")).Bold(true).PaddingLeft(1).PaddingRight(1)
+			fmt.Println("HTTP/2", style.Render(response.Status))
+		} else if response.StatusCode >= 300 && response.StatusCode <= 399 {
+			style := lipgloss.NewStyle().Foreground(lipgloss.Color("#FFFFFF")).Background(lipgloss.Color("#01579B")).Bold(true).PaddingLeft(1).PaddingRight(1)
+			fmt.Println("HTTP/2", style.Render(response.Status))
+		} else if response.StatusCode >= 400 && response.StatusCode <= 499 {
+			style := lipgloss.NewStyle().Foreground(lipgloss.Color("#FFFFFF")).Background(lipgloss.Color("#E651000")).Bold(true).PaddingLeft(1).PaddingRight(1)
+			fmt.Println("HTTP/2", style.Render(response.Status))
+		} else if response.StatusCode >= 500 && response.StatusCode <= 599 {
+			style := lipgloss.NewStyle().Foreground(lipgloss.Color("#FFFFFF")).Background(lipgloss.Color("#B71C1C")).Bold(true).PaddingLeft(1).PaddingRight(1)
+			fmt.Println("HTTP/2", style.Render(response.Status))
+		} else {
+			fmt.Println("HTTP/2", response.Status)
+		}
 	}
 
 	if options.WithHeaders {
+		headersTable := table.New().BorderStyle(lipgloss.NewStyle().Foreground(lipgloss.Color("#01579B"))).Headers("Header", "Value")
+
 		for headerName, headerValues := range response.Header {
-			headerLine := fmt.Sprintf("%s: ", headerName)
-
-			for _, headerValue := range headerValues {
-				headerLine = fmt.Sprint(headerLine, headerValue)
-			}
-
-			fmt.Println(headerLine)
+			headersTable.Row(headerName, strings.Join(headerValues, ", "))
 		}
+
+		fmt.Println(headersTable)
 	}
 
 	if options.WithBody {
@@ -177,7 +192,6 @@ func main() {
 			errorAndExit("Unable to fetch the response body:", responseError)
 		}
 
-		// TODO: use lipgloss here
 		fmt.Println(string(responseBytes))
 	}
 
