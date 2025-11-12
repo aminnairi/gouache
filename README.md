@@ -224,7 +224,6 @@ gouache --with-status create-user.http
 ```bash
 mkdir requests
 touch requests/users.http
-touch requests/posts.http
 ```
 
 ```http
@@ -232,8 +231,22 @@ GET /users HTTP/2
 Host: https://jsonplaceholder.typicode.com
 ```
 
+```bash
+touch requests/posts.http
+```
+
 ```http
 GET /posts HTTP/2
+Host: https://jsonplaceholder.typicode.com
+```
+
+```bash
+mkdir requests/posts
+touch requests/posts/first.http
+```
+
+```http
+GET /posts/1 HTTP/2
 Host: https://jsonplaceholder.typicode.com
 ```
 
