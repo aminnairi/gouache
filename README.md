@@ -3,7 +3,7 @@
 Create HTTP requests from file and run them right from your terminal
 
 > [!NOTE]
-> The name of this library, `gouache`, pronounced _/ɡwɑːʃ/_, represents a type
+> The name of this library, `gouache`, pronounced _/ɡwɑːʃ/_, is a french word representing a type
 > of paint that can react to water to update or create a new painting.
 
 ## Usage
