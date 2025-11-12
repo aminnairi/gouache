@@ -217,7 +217,7 @@ gouache request create-user.http
 ```
 
 > [!IMPORTANT]
-> Errors will still be written in the standard error of your terminal.
+> Errors and informations will still be written in the standard error of your terminal.
 
 ### Run all requests from a folder recursively
 
