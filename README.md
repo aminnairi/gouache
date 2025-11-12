@@ -64,6 +64,12 @@ Cache-Control: max-age=43200
 ...
 ```
 
+## Features
+
+- Write HTTP requests in a friendly format
+- It's just HTTP protocol and nothing else
+- Run requests right from your terminal
+
 ## Installation
 
 > [!NOTE]
