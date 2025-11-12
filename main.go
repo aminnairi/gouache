@@ -86,7 +86,7 @@ func main() {
 		validMethod := slices.Contains(allowedMethods, method)
 
 		if !validMethod {
-			logger.Fatal("Invalid method:", method)
+			logger.Fatal("Invalid method:", method, "expected one of the following:", strings.Join(allowedMethods, ", "))
 		}
 
 		path := parts[1]
