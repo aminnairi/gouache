@@ -17,6 +17,8 @@ import (
 )
 
 // TODO: replace go-flags with https://github.com/spf13/cobra
+// TODO: create a command for running requests
+// TODO: create a command for generating requests interactively using https://github.com/charmbracelet/huh
 
 type Options struct {
 	WithBody    bool `short:"b" long:"with-body" description:"Display the raw body of the response"`
