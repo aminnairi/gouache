@@ -17,6 +17,14 @@ func Fatal(messages ...any) {
 	os.Exit(1)
 }
 
+func Warning(messages ...any) {
+	errorStyle := lipgloss.NewStyle().Bold(true).Background(lipgloss.Color("#EF6C00")).Foreground(lipgloss.Color("#FFFFFF")).PaddingLeft(1).PaddingRight(1)
+	allMessages := []any{errorStyle.Render("WARNING")}
+	allMessages = append(allMessages, messages...)
+
+	fmt.Println(allMessages...)
+}
+
 func Info(messages ...any) {
 	errorStyle := lipgloss.NewStyle().Bold(true).Background(lipgloss.Color("#01579B")).Foreground(lipgloss.Color("#FFFFFF")).PaddingLeft(1).PaddingRight(1)
 	allMessages := []any{errorStyle.Render("INFO")}
