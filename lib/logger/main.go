@@ -24,3 +24,28 @@ func Info(messages ...any) {
 
 	fmt.Println(allMessages...)
 }
+
+func HTTPInformational(statusText string) {
+	style := lipgloss.NewStyle().Foreground(lipgloss.Color("#000000")).Background(lipgloss.Color("#FFFFFF")).Bold(true).PaddingLeft(1).PaddingRight(1)
+	fmt.Println("HTTP/2", style.Render(statusText))
+}
+
+func HTTPSuccess(statusText string) {
+	style := lipgloss.NewStyle().Foreground(lipgloss.Color("#FFFFFF")).Background(lipgloss.Color("#1B5E20")).Bold(true).PaddingLeft(1).PaddingRight(1)
+	fmt.Println("HTTP/2", style.Render(statusText))
+}
+
+func HTTPRedirection(statusText string) {
+	style := lipgloss.NewStyle().Foreground(lipgloss.Color("#FFFFFF")).Background(lipgloss.Color("#01579B")).Bold(true).PaddingLeft(1).PaddingRight(1)
+	fmt.Println("HTTP/2", style.Render(statusText))
+}
+
+func HTTPClientError(statusText string) {
+	style := lipgloss.NewStyle().Foreground(lipgloss.Color("#FFFFFF")).Background(lipgloss.Color("#E651000")).Bold(true).PaddingLeft(1).PaddingRight(1)
+	fmt.Println("HTTP/2", style.Render(statusText))
+}
+
+func HTTPServerError(statusText string) {
+	style := lipgloss.NewStyle().Foreground(lipgloss.Color("#FFFFFF")).Background(lipgloss.Color("#B71C1C")).Bold(true).PaddingLeft(1).PaddingRight(1)
+	fmt.Println("HTTP/2", style.Render(statusText))
+}
