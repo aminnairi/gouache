@@ -39,7 +39,7 @@ Run your request.
 > access to this program.
 
 ```bash
-gouache --request index.request --with-status --with-headers --with-body
+gouache --with-status --with-headers --with-body index.request
 HTTP/2 200 OK
 Server: cloudflare
 X-Powered-By: Express
@@ -109,7 +109,7 @@ Host: https://jsonplaceholder.typicode.com/users
 ```
 
 ```bash
-gouache --request get.request --with-status
+gouache --with-status get.request
 ```
 
 ### How to create a POST request
@@ -130,7 +130,7 @@ Content-Type: application/json
 ```
 
 ```bash
-gouache --request post.request --with-status
+gouache --with-status post.request
 ```
 
 ### How to create a PATCH request
@@ -150,7 +150,7 @@ Content-Type: application/json
 ```
 
 ```bash
-gouache --request patch.request --with-status
+gouache --with-status patch.request
 ```
 
 ### How to create a PUT request
@@ -170,7 +170,7 @@ Content-Type: application/json
 ```
 
 ```bash
-gouache --request put.request --with-status
+gouache --with-status put.request
 ```
 
 ### How to create a DELETE request
@@ -191,7 +191,7 @@ Content-Type: application/json
 ```
 
 ```bash
-gouache --request delete.request --with-status
+gouache --with-status delete.request
 ```
 
 ### Run a request without output
@@ -212,7 +212,7 @@ Content-Type: application/json
 ```
 
 ```bash
-gouache --request create-user.request
+gouache --with-status create-user.request
 ```
 
 > [!IMPORTANT]
