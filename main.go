@@ -2,7 +2,6 @@ package main
 
 import (
 	"bufio"
-	"flag"
 	"fmt"
 	"io"
 	"log"
@@ -10,40 +9,31 @@ import (
 	"os"
 	"slices"
 	"strings"
+
+	"github.com/jessevdk/go-flags"
 )
 
 type Options struct {
-	requestFilePath string
-	withBody        bool
-	withHeaders     bool
-	withStatus      bool
+	RequestFilePath string `short:"r" long:"request" description:"HTTP request file to run"`
+	WithBody        bool   `short:"b" long:"with-body" description:"Display the raw body of the response"`
+	WithHeaders     bool   `short:"H" long:"with-headers" description:"Display the headers of the response"`
+	WithStatus      bool   `short:"s" long:"with-status" description:"Display the status line of the response"`
 }
 
-// TODO: use jessevdk/go-flags for parsing flags in a more friendly way
 func main() {
 	allowedMethods := []string{"GET", "POST", "PATCH", "DELETE", "PUT"}
 	options := Options{}
+	arguments, parseError := flags.Parse(&options)
 
-	flag.StringVar(&options.requestFilePath, "request", "", "Provide a file containing the HTTP request to run")
-	flag.StringVar(&options.requestFilePath, "r", "", "Provide a file containing the HTTP request to run")
-
-	flag.BoolVar(&options.withStatus, "with-status", false, "Display the status line of the response")
-	flag.BoolVar(&options.withStatus, "s", false, "Display the status line of the response (shorthand)")
-
-	flag.BoolVar(&options.withHeaders, "with-headers", false, "Display the headers of the response")
-	flag.BoolVar(&options.withHeaders, "h", false, "Display the headers of the response (shorthand)")
-
-	flag.BoolVar(&options.withBody, "with-body", false, "Display the raw body of the response")
-	flag.BoolVar(&options.withBody, "b", false, "Display the raw body of the response (shorthand)")
-
-	flag.Parse()
-
-	if len(flag.Args()) > 0 {
-		flag.Usage()
-		os.Exit(1)
+	if parseError != nil {
+		log.Fatal("Failed to parse arguments:", parseError)
 	}
 
-	stat, statError := os.Stat(options.requestFilePath)
+	if len(arguments) > 0 {
+		log.Fatal("This program does not expect any arguments.")
+	}
+
+	stat, statError := os.Stat(options.RequestFilePath)
 
 	if statError != nil {
 		log.Fatal("Provided path is not a file")
@@ -53,7 +43,7 @@ func main() {
 		log.Fatal("Provided request should not be a directory, but rather a path to a file")
 	}
 
-	file, openError := os.Open(options.requestFilePath)
+	file, openError := os.Open(options.RequestFilePath)
 
 	if openError != nil {
 		log.Fatal("Unable to open file:", openError)
@@ -154,11 +144,11 @@ func main() {
 		log.Fatal("Error while running the request:", clientError)
 	}
 
-	if options.withStatus {
+	if options.WithStatus {
 		fmt.Println("HTTP/2", response.Status)
 	}
 
-	if options.withHeaders {
+	if options.WithHeaders {
 		for headerName, headerValues := range response.Header {
 			headerLine := fmt.Sprintf("%s: ", headerName)
 
@@ -170,7 +160,7 @@ func main() {
 		}
 	}
 
-	if options.withBody {
+	if options.WithBody {
 		responseBytes, responseError := io.ReadAll(response.Body)
 
 		if responseError != nil {
