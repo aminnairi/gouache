@@ -218,6 +218,28 @@ gouache --with-status create-user.http
 > [!IMPORTANT]
 > Errors will still be written in the standard error of your terminal.
 
+### Run all requests from a folder recursively
+
+```bash
+mkdir requests
+touch requests/users.http
+touch requests/posts.http
+```
+
+```http
+GET /users HTTP/2
+Host: https://jsonplaceholder.typicode.com
+```
+
+```http
+GET /posts HTTP/2
+Host: https://jsonplaceholder.typicode.com
+```
+
+```bash
+gouache --with-status requests
+```
+
 ## License
 
 See [`LICENSE`](./LICENSE).
