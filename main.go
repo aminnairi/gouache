@@ -69,21 +69,29 @@ func main() {
 		log.Fatal("Request must contain at least one header")
 	}
 
-	header := scanner.Text()
-	headerParts := strings.Split(header, ": ")
+	hostHeader := scanner.Text()
+	hostHeaderParts := strings.Split(hostHeader, ": ")
 
-	if len(headerParts) != 2 {
+	if len(hostHeaderParts) != 2 {
 		log.Fatal("Header must be in the following format: HeaderName: HeaderValue")
 	}
 
-	headerName := strings.Trim(headerParts[0], " ")
-	headerValue := strings.Trim(headerParts[1], " ")
+	hostHeaderName := strings.Trim(hostHeaderParts[0], " ")
+	hostHeaderValue := strings.Trim(hostHeaderParts[1], " ")
 
-	if headerName != "Host" {
+	if hostHeaderName != "Host" {
 		log.Fatal("First header must be the Host header")
 	}
 
-	request, requestError := http.NewRequest(method, fmt.Sprint(headerValue, path), nil)
+	isHeaderPrefixedWithHTTP := strings.HasPrefix(hostHeaderValue, "http://")
+	isHeaderPrefixedWithHTTPS := strings.HasPrefix(hostHeaderValue, "https://")
+	isHeaderCorrectlyPrefixed := isHeaderPrefixedWithHTTP || isHeaderPrefixedWithHTTPS
+
+	if !isHeaderCorrectlyPrefixed {
+		log.Fatal("Host header value should starts with http:// or https://")
+	}
+
+	request, requestError := http.NewRequest(method, fmt.Sprint(hostHeaderValue, path), nil)
 
 	isBody := false
 	body := ""
