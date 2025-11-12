@@ -14,28 +14,49 @@ import (
 	"github.com/aminnairi/gouache/lib/number"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/charmbracelet/lipgloss/table"
-	"github.com/jessevdk/go-flags"
+	"github.com/spf13/cobra"
 )
 
-// TODO: replace go-flags with https://github.com/spf13/cobra
-// TODO: create a command for running requests
 // TODO: create a command for generating requests interactively using https://github.com/charmbracelet/huh
 
 type Options struct {
-	WithBody    bool `short:"b" long:"with-body" description:"Display the raw body of the response"`
-	WithHeaders bool `short:"H" long:"with-headers" description:"Display the headers of the response"`
-	WithStatus  bool `short:"s" long:"with-status" description:"Display the status line of the response"`
+	WithBody    bool
+	WithHeaders bool
+	WithStatus  bool
 }
 
 func main() {
-	allowedMethods := []string{"GET", "POST", "PATCH", "DELETE", "PUT"}
 	options := Options{}
-	arguments, parseError := flags.Parse(&options)
-	filePaths := []string{}
+	arguments := []string{}
 
-	if parseError != nil {
-		logger.Fatal("Failed to parse options:", parseError)
+	rootCommand := &cobra.Command{
+		Use:   "gouache",
+		Short: "Create and send HTTP request from files",
+		Long:  "Create HTTP requests from files and run them right from your terminal",
 	}
+
+	requestCommand := &cobra.Command{
+		Use:   "request file.request",
+		Short: "Send HTTP requests",
+		Long:  "Send HTTP requests to the provided file or folder containing files for each one of your HTTP requests",
+		Args:  cobra.MinimumNArgs(1),
+		Run: func(cmd *cobra.Command, args []string) {
+			arguments = args
+		},
+	}
+
+	rootCommand.AddCommand(requestCommand)
+
+	requestCommand.Flags().BoolVarP(&options.WithBody, "with-body", "b", false, "Display the raw body of the response")
+	requestCommand.Flags().BoolVarP(&options.WithStatus, "with-status", "s", false, "Display the status line of the response")
+	requestCommand.Flags().BoolVarP(&options.WithHeaders, "with-headers", "H", false, "Display the headers of the response")
+
+	if commandError := rootCommand.Execute(); commandError != nil {
+		logger.Fatal("Error when executing the command:", commandError)
+	}
+
+	allowedMethods := []string{"GET", "POST", "PATCH", "DELETE", "PUT"}
+	filePaths := []string{}
 
 	if len(arguments) == 0 {
 		logger.Fatal("No file or folder provided.")
