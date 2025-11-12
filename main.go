@@ -12,13 +12,29 @@ import (
 	"strings"
 )
 
+type Options struct {
+	requestFilePath string
+	withBody        bool
+	withHeaders     bool
+	withStatus      bool
+}
+
+// TODO: use jessevdk/go-flags for parsing flags in a more friendly way
 func main() {
 	allowedMethods := []string{"GET", "POST", "PATCH", "DELETE", "PUT"}
+	options := Options{}
 
-	withStatus := flag.Bool("with-status", false, "Display the status line of the response")
-	withHeaders := flag.Bool("with-headers", false, "Display the headers of the response")
-	withBody := flag.Bool("with-body", false, "Display the raw body of the response")
-	requestPath := flag.String("request", "", "Provide a file containing the HTTP request to run")
+	flag.StringVar(&options.requestFilePath, "request", "", "Provide a file containing the HTTP request to run")
+	flag.StringVar(&options.requestFilePath, "r", "", "Provide a file containing the HTTP request to run")
+
+	flag.BoolVar(&options.withStatus, "with-status", false, "Display the status line of the response")
+	flag.BoolVar(&options.withStatus, "s", false, "Display the status line of the response (shorthand)")
+
+	flag.BoolVar(&options.withHeaders, "with-headers", false, "Display the headers of the response")
+	flag.BoolVar(&options.withHeaders, "h", false, "Display the headers of the response (shorthand)")
+
+	flag.BoolVar(&options.withBody, "with-body", false, "Display the raw body of the response")
+	flag.BoolVar(&options.withBody, "b", false, "Display the raw body of the response (shorthand)")
 
 	flag.Parse()
 
@@ -27,7 +43,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	stat, statError := os.Stat(*requestPath)
+	stat, statError := os.Stat(options.requestFilePath)
 
 	if statError != nil {
 		log.Fatal("Provided path is not a file")
@@ -37,7 +53,7 @@ func main() {
 		log.Fatal("Provided request should not be a directory, but rather a path to a file")
 	}
 
-	file, openError := os.Open(*requestPath)
+	file, openError := os.Open(options.requestFilePath)
 
 	if openError != nil {
 		log.Fatal("Unable to open file:", openError)
@@ -138,11 +154,11 @@ func main() {
 		log.Fatal("Error while running the request:", clientError)
 	}
 
-	if *withStatus {
+	if options.withStatus {
 		fmt.Println("HTTP/2", response.Status)
 	}
 
-	if *withHeaders {
+	if options.withHeaders {
 		for headerName, headerValues := range response.Header {
 			headerLine := fmt.Sprintf("%s: ", headerName)
 
@@ -154,7 +170,7 @@ func main() {
 		}
 	}
 
-	if *withBody {
+	if options.withBody {
 		responseBytes, responseError := io.ReadAll(response.Body)
 
 		if responseError != nil {
