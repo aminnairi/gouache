@@ -40,7 +40,11 @@ func main() {
 
 	for _, argument := range arguments {
 		for filePath := range fs.Files(argument) {
-			// TODO: fence only files ending with extension .http
+			if !strings.HasSuffix(filePath, ".http") {
+				logger.Info("File", filePath, "ignored because it does not have the suffix .http")
+				continue
+			}
+
 			filePaths = append(filePaths, filePath)
 		}
 	}
