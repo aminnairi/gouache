@@ -16,6 +16,8 @@ import (
 	"github.com/jessevdk/go-flags"
 )
 
+// TODO: replace go-flags with https://github.com/spf13/cobra
+
 type Options struct {
 	WithBody    bool `short:"b" long:"with-body" description:"Display the raw body of the response"`
 	WithHeaders bool `short:"H" long:"with-headers" description:"Display the headers of the response"`
