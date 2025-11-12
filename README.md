@@ -92,6 +92,11 @@ rm -rf $(which gouache)
 
 ## FAQ
 
+> [!IMPORTANT]
+> If you are unsure of what the HTTP protocol is, [here is a detailed
+> article](https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/Overview)
+> from the Mozilla Developers Network website that explains it well.
+
 ### How to create a GET request
 
 ```bash
