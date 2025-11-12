@@ -14,14 +14,35 @@ touch index.request
 ```
 
 ```http
-GET /1.1.1.1/json HTTP/2
-Host: ipapi.co
+GET /users HTTP/2
+Host: https://jsonplaceholder.typicode.com
 Accept: application/json
 ```
 
 ```bash
-gouache --request index.http
+gouache -request index.request -with-status -with-headers -with-body
 HTTP/2 200 OK
+Server: cloudflare
+X-Powered-By: Express
+Content-Type: application/json; charset=utf-8
+Cache-Control: max-age=43200
+[
+  {
+    "id": 1,
+    "name": "Leanne Graham",
+    "username": "Bret",
+    "email": "Sincere@april.biz",
+    "address": {
+      "street": "Kulas Light",
+      "suite": "Apt. 556",
+      "city": "Gwenborough",
+      "zipcode": "92998-3874",
+      "geo": {
+        "lat": "-37.3159",
+        "lng": "81.1496"
+      }
+    },
+...
 ```
 
 ## Installation
