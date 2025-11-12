@@ -51,6 +51,105 @@ Cache-Control: max-age=43200
 go install github.com/aminnairi/gouache
 ```
 
+## FAQ
+
+### How to create a GET request
+
+```bash
+touch get.request
+```
+
+```http
+GET /users HTTP/2
+Host: https://jsonplaceholder.typicode.com/users
+```
+
+```bash
+gouache -request get.request -with-status
+```
+
+### How to create a POST request
+
+```bash
+touch post.request
+```
+
+```http
+POST /users HTTP/2
+Host: https://jsonplaceholder.typicode.com/users
+Content-Type: application/json
+
+{
+  "id": 11,
+  "email": "user@domain.com"
+}
+```
+
+```bash
+gouache -request post.request -with-status
+```
+
+### How to create a PATCH request
+
+```bash
+touch patch.request
+```
+
+```http
+PATCH /users/10 HTTP/2
+Host: https://jsonplaceholder.typicode.com/users
+Content-Type: application/json
+
+{
+  "email": "user@domain.com"
+}
+```
+
+```bash
+gouache -request patch.request -with-status
+```
+
+### How to create a PUT request
+
+```bash
+touch put.request
+```
+
+```http
+PUT /users/10 HTTP/2
+Host: https://jsonplaceholder.typicode.com/users
+Content-Type: application/json
+
+{
+  "email": "user@domain.com"
+}
+```
+
+```bash
+gouache -request put.request -with-status
+```
+
+### How to create a DELETE request
+
+```bash
+touch delete.request
+```
+
+```http
+DELETE /users HTTP/2
+Host: https://jsonplaceholder.typicode.com/users
+Content-Type: application/json
+
+{
+  "id": 10,
+  "email": "user@domain.com"
+}
+```
+
+```bash
+gouache -request delete.request -with-status
+```
+
 ## License
 
 See [`LICENSE`](./LICENSE).
