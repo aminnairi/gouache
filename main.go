@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"flag"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"os"
@@ -12,8 +13,12 @@ import (
 )
 
 func main() {
-	requestPath := flag.String("request", "", "Provide a file containing the HTTP request to run")
 	allowedMethods := []string{"GET", "POST", "PATCH", "DELETE", "PUT"}
+
+	withStatus := flag.Bool("with-status", false, "Display the status line of the response")
+	withHeaders := flag.Bool("with-headers", false, "Display the headers of the response")
+	withBody := flag.Bool("with-body", false, "Display the raw body of the response")
+	requestPath := flag.String("request", "", "Provide a file containing the HTTP request to run")
 
 	flag.Parse()
 
@@ -94,11 +99,11 @@ func main() {
 	request, requestError := http.NewRequest(method, fmt.Sprint(hostHeaderValue, path), nil)
 
 	isBody := false
-	body := ""
+	requestBody := ""
 
 	for scanner.Scan() {
 		if isBody {
-			body += scanner.Text()
+			requestBody += scanner.Text()
 			continue
 		}
 
@@ -133,10 +138,30 @@ func main() {
 		log.Fatal("Error while running the request:", clientError)
 	}
 
-	fmt.Println("HTTP/2", response.Status)
+	if *withStatus {
+		fmt.Println("HTTP/2", response.Status)
+	}
 
-	for headerName, headerValue := range response.Header {
-		fmt.Printf("%s: %s\n", headerName, headerValue)
+	if *withHeaders {
+		for headerName, headerValues := range response.Header {
+			headerLine := fmt.Sprintf("%s: ", headerName)
+
+			for _, headerValue := range headerValues {
+				headerLine = fmt.Sprint(headerLine, headerValue)
+			}
+
+			fmt.Println(headerLine)
+		}
+	}
+
+	if *withBody {
+		responseBytes, responseError := io.ReadAll(response.Body)
+
+		if responseError != nil {
+			log.Fatal("Unable to fetch the response body:", responseError)
+		}
+
+		fmt.Println(string(responseBytes))
 	}
 
 	closeError := file.Close()
