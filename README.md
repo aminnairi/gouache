@@ -2,8 +2,7 @@
 
 Create HTTP requests from file and run them right from your terminal
 
-> [!NOTE] >
-> `gouache`, pronounced _/ɡwɑːʃ/_, it represent a type of paint that can react
+> [!NOTE] > `gouache`, pronounced _/ɡwɑːʃ/_, it represent a type of paint that can react
 > to water to update or create a new painting.
 
 ## Usage
