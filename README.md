@@ -56,6 +56,17 @@ Cache-Control: max-age=43200
 go install github.com/aminnairi/gouache
 ```
 
+## Uninstallation
+
+> [!NOTE]
+> The `go` binary does not have a way to uninstall a previously installed
+> package, but all it does is create a folder and download the sources in that
+> folder.
+
+```bash
+rm -rf $(which gouache)
+```
+
 ## FAQ
 
 ### How to create a GET request
