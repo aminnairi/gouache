@@ -4,7 +4,6 @@ go 1.25.4
 
 require (
 	github.com/charmbracelet/lipgloss v1.1.0
-	github.com/jessevdk/go-flags v1.6.1
 	github.com/spf13/cobra v1.10.1
 )
 
