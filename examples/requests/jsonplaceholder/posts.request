@@ -1,0 +1,2 @@
+GET /posts HTTP/2
+Host: https://jsonplaceholder.typicode.com
