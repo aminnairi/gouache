@@ -1,3 +1,3 @@
-module github.com/aminnairi/go-http-cli
+module github.com/aminnairi/gouache
 
 go 1.25.4
