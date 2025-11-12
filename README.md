@@ -11,7 +11,7 @@ Create HTTP requests from file and run them right from your terminal
 Create a new HTTP request.
 
 ```bash
-touch index.request
+touch index.http
 ```
 
 Fill in the details of your request.
@@ -23,7 +23,7 @@ Accept: application/json
 ```
 
 > [!WARNING]
-> There should only be one HTTP request per `*.request` file.
+> There should only be one HTTP request per `*.http` file.
 
 Install the binary as a global command.
 
@@ -39,7 +39,7 @@ Run your request.
 > access to this program.
 
 ```bash
-gouache --with-status --with-headers --with-body index.request
+gouache --with-status --with-headers --with-body index.http
 HTTP/2 200 OK
 Server: cloudflare
 X-Powered-By: Express
@@ -100,7 +100,7 @@ rm -rf $(which gouache)
 ### How to create a GET request
 
 ```bash
-touch get.request
+touch get.http
 ```
 
 ```http
@@ -109,13 +109,13 @@ Host: https://jsonplaceholder.typicode.com/users
 ```
 
 ```bash
-gouache --with-status get.request
+gouache --with-status get.http
 ```
 
 ### How to create a POST request
 
 ```bash
-touch post.request
+touch post.http
 ```
 
 ```http
@@ -130,13 +130,13 @@ Content-Type: application/json
 ```
 
 ```bash
-gouache --with-status post.request
+gouache --with-status post.http
 ```
 
 ### How to create a PATCH request
 
 ```bash
-touch patch.request
+touch patch.http
 ```
 
 ```http
@@ -150,13 +150,13 @@ Content-Type: application/json
 ```
 
 ```bash
-gouache --with-status patch.request
+gouache --with-status patch.http
 ```
 
 ### How to create a PUT request
 
 ```bash
-touch put.request
+touch put.http
 ```
 
 ```http
@@ -170,13 +170,13 @@ Content-Type: application/json
 ```
 
 ```bash
-gouache --with-status put.request
+gouache --with-status put.http
 ```
 
 ### How to create a DELETE request
 
 ```bash
-touch delete.request
+touch delete.http
 ```
 
 ```http
@@ -191,13 +191,13 @@ Content-Type: application/json
 ```
 
 ```bash
-gouache --with-status delete.request
+gouache --with-status delete.http
 ```
 
 ### Run a request without output
 
 ```bash
-touch create-user.request
+touch create-user.http
 ```
 
 ```http
@@ -212,7 +212,7 @@ Content-Type: application/json
 ```
 
 ```bash
-gouache --with-status create-user.request
+gouache --with-status create-user.http
 ```
 
 > [!IMPORTANT]
