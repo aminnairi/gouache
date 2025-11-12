@@ -53,6 +53,8 @@ func main() {
 	}
 
 	for _, filePath := range filePaths {
+		logger.Info("Sending request from file", filePath)
+
 		stat, statError := os.Stat(filePath)
 
 		if statError != nil {
