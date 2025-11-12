@@ -2,10 +2,7 @@
 
 Create HTTP requests from file and run them right from your terminal
 
-## Synopsis
-
-`gouache`, pronounced _/ɡwɑːʃ/_, it represent a type of paint that can react to
-water to update or create a new painting.
+> [!NOTE] `gouache`, pronounced _/ɡwɑːʃ/_, it represent a type of paint that can react to water to update or create a new painting.
 
 ## Usage
 
@@ -18,6 +15,8 @@ GET /users HTTP/2
 Host: https://jsonplaceholder.typicode.com
 Accept: application/json
 ```
+
+> [!WARNING] There should only be one HTTP request per `*.request` file.
 
 ```bash
 gouache -request index.request -with-status -with-headers -with-body
@@ -46,6 +45,8 @@ Cache-Control: max-age=43200
 ```
 
 ## Installation
+
+> [!NOTE] This commands needs to be run inside of a terminal with access to the `go` binary.
 
 ```bash
 go install github.com/aminnairi/gouache
@@ -149,6 +150,29 @@ Content-Type: application/json
 ```bash
 gouache -request delete.request -with-status
 ```
+
+### Run a request without output
+
+```bash
+touch create-user.request
+```
+
+```http
+POST /users HTTP/2
+Host: https://jsonplaceholder.typicode.com/users
+Content-Type: application/json
+
+{
+  "id": 11,
+  "email": "user@domain.com"
+}
+```
+
+```bash
+gouache -request create-user.request
+```
+
+> [!IMPORTANT] Errors will still be written in the standard error of your terminal.
 
 ## License
 
