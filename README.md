@@ -213,7 +213,7 @@ Content-Type: application/json
 ```
 
 ```bash
-gouache request  --with-status create-user.http
+gouache request create-user.http
 ```
 
 > [!IMPORTANT]
