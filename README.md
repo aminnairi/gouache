@@ -1,6 +1,6 @@
 # gouache
 
-Create HTTP requests from file and run them right from your terminal
+Create HTTP requests from files and run them right from your terminal
 
 > [!NOTE]
 > The name of this library, `gouache`, pronounced _/ɡwɑːʃ/_, is a french word representing a type
@@ -69,6 +69,7 @@ Cache-Control: max-age=43200
 - Write HTTP requests in a friendly format
 - It's just HTTP protocol and nothing else
 - Run requests right from your terminal
+- Run all requests from a folder recursively
 
 ## Installation
 
