@@ -4,12 +4,12 @@ import (
 	"bufio"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"os"
 	"slices"
 	"strings"
 
+	"github.com/charmbracelet/lipgloss"
 	"github.com/jessevdk/go-flags"
 )
 
@@ -20,78 +20,87 @@ type Options struct {
 	WithStatus      bool   `short:"s" long:"with-status" description:"Display the status line of the response"`
 }
 
+func errorAndExit(messages ...any) {
+	errorStyle := lipgloss.NewStyle().Bold(true).Background(lipgloss.Color("#B00020")).Foreground(lipgloss.Color("#FFFFFF")).PaddingLeft(1).PaddingRight(1)
+	allMessages := []any{errorStyle.Render("ERROR")}
+	allMessages = append(allMessages, messages...)
+
+	fmt.Println(allMessages...)
+	os.Exit(1)
+}
+
 func main() {
 	allowedMethods := []string{"GET", "POST", "PATCH", "DELETE", "PUT"}
 	options := Options{}
 	arguments, parseError := flags.Parse(&options)
 
 	if parseError != nil {
-		log.Fatal("Failed to parse arguments:", parseError)
+		errorAndExit("Failed to parse options:", parseError)
 	}
 
 	if len(arguments) > 0 {
-		log.Fatal("This program does not expect any arguments.")
+		errorAndExit("This program does not expect any arguments.")
 	}
 
 	stat, statError := os.Stat(options.RequestFilePath)
 
 	if statError != nil {
-		log.Fatal("Provided path is not a file")
+		errorAndExit("File", options.RequestFilePath, "does not exist or is not readable.")
 	}
 
 	if stat.IsDir() {
-		log.Fatal("Provided request should not be a directory, but rather a path to a file")
+		errorAndExit("Provided request should not be a directory, but rather a path to a file")
 	}
 
 	file, openError := os.Open(options.RequestFilePath)
 
 	if openError != nil {
-		log.Fatal("Unable to open file:", openError)
+		errorAndExit("Unable to open file:", openError)
 	}
 
 	scanner := bufio.NewScanner(file)
 
 	if !scanner.Scan() {
-		log.Fatal("Expected a request line, got nothing.")
+		errorAndExit("Expected a request line, got nothing.")
 	}
 
 	line := scanner.Text()
 	parts := strings.Split(line, " ")
 
 	if len(parts) != 3 {
-		log.Fatal("Invaid line encountered for line:", parts)
+		errorAndExit("Invaid line encountered for line:", parts)
 	}
 
 	method := parts[0]
 	validMethod := slices.Contains(allowedMethods, method)
 
 	if !validMethod {
-		log.Fatal("Invalid method:", method)
+		errorAndExit("Invalid method:", method)
 	}
 
 	path := parts[1]
 	version := parts[2]
 
 	if version != "HTTP/2" {
-		log.Fatal("HTTP version must be HTTP/2")
+		errorAndExit("HTTP version must be HTTP/2")
 	}
 
 	if !scanner.Scan() {
-		log.Fatal("Request must contain at least one header")
+		errorAndExit("Request must contain at least one header")
 	}
 
 	hostHeader := scanner.Text()
 	hostHeaderParts := strings.Split(hostHeader, ": ")
 
 	if len(hostHeaderParts) != 2 {
-		log.Fatal("Header must be in the following format: HeaderName: HeaderValue")
+		errorAndExit("Header must be in the following format: HeaderName: HeaderValue")
 	}
 
 	hostHeaderName := strings.Trim(hostHeaderParts[0], " ")
 	hostHeaderValue := strings.Trim(hostHeaderParts[1], " ")
 
 	if hostHeaderName != "Host" {
-		log.Fatal("First header must be the Host header")
+		errorAndExit("First header must be the Host header")
 	}
 
 	isHeaderPrefixedWithHTTP := strings.HasPrefix(hostHeaderValue, "http://")
@@ -99,7 +108,7 @@ func main() {
 	isHeaderCorrectlyPrefixed := isHeaderPrefixedWithHTTP || isHeaderPrefixedWithHTTPS
 
 	if !isHeaderCorrectlyPrefixed {
-		log.Fatal("Host header value should starts with http:// or https://")
+		errorAndExit("Host header value should starts with http:// or https://")
 	}
 
 	request, requestError := http.NewRequest(method, fmt.Sprint(hostHeaderValue, path), nil)
@@ -123,7 +132,7 @@ func main() {
 		headerParts := strings.Split(header, ": ")
 
 		if len(headerParts) != 2 {
-			log.Fatal("Header must be in the following format: HeaderName: HeaderValue")
+			errorAndExit("Header must be in the following format: HeaderName: HeaderValue")
 		}
 
 		headerName := strings.Trim(headerParts[0], " ")
@@ -135,16 +144,17 @@ func main() {
 	client := &http.Client{}
 
 	if requestError != nil {
-		log.Fatal("Unable to run request:", requestError)
+		errorAndExit("Unable to run request:", requestError)
 	}
 
 	response, clientError := client.Do(request)
 
 	if clientError != nil {
-		log.Fatal("Error while running the request:", clientError)
+		errorAndExit("Error while running the request:", clientError)
 	}
 
 	if options.WithStatus {
+		// TODO: use lipgloss here
 		fmt.Println("HTTP/2", response.Status)
 	}
 
@@ -164,15 +174,16 @@ func main() {
 		responseBytes, responseError := io.ReadAll(response.Body)
 
 		if responseError != nil {
-			log.Fatal("Unable to fetch the response body:", responseError)
+			errorAndExit("Unable to fetch the response body:", responseError)
 		}
 
+		// TODO: use lipgloss here
 		fmt.Println(string(responseBytes))
 	}
 
 	closeError := file.Close()
 
 	if closeError != nil {
-		log.Fatal("Error while closing file:", closeError)
+		errorAndExit("Error while closing file:", closeError)
 	}
 }
