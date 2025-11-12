@@ -12,10 +12,15 @@ import (
 )
 
 func main() {
-	requestPath := flag.String("request", "", "gouache --request request.http")
+	requestPath := flag.String("request", "", "Provide a file containing the HTTP request to run")
 	allowedMethods := []string{"GET", "POST", "PATCH", "DELETE", "PUT"}
 
 	flag.Parse()
+
+	if len(flag.Args()) > 0 {
+		flag.Usage()
+		os.Exit(1)
+	}
 
 	stat, statError := os.Stat(*requestPath)
 
@@ -27,7 +32,7 @@ func main() {
 		log.Fatal("Provided request should not be a directory, but rather a path to a file")
 	}
 
-	file, openError := os.Open("requests/index.http")
+	file, openError := os.Open(*requestPath)
 
 	if openError != nil {
 		log.Fatal("Unable to open file:", openError)
