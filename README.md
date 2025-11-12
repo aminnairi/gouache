@@ -8,9 +8,13 @@ Create HTTP requests from file and run them right from your terminal
 
 ## Usage
 
+Create a new HTTP request.
+
 ```bash
 touch index.request
 ```
+
+Fill in the details of your request.
 
 ```http
 GET /users HTTP/2
@@ -20,6 +24,19 @@ Accept: application/json
 
 > [!WARNING]
 > There should only be one HTTP request per `*.request` file.
+
+Install the binary as a global command.
+
+```bash
+go install github.com/aminnairi/gouache
+```
+
+Run your request.
+
+> [!WARNING]
+> You should have the path to go installed binaries [already
+> setup](https://go.dev/wiki/SettingGOPATH) in order for your terminal to have
+> access to this program.
 
 ```bash
 gouache -request index.request -with-status -with-headers -with-body
