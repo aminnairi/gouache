@@ -38,6 +38,7 @@ func main() {
 
 	for _, argument := range arguments {
 		for filePath := range fs.Files(argument) {
+			// TODO: fence only files ending with extension .http
 			filePaths = append(filePaths, filePath)
 		}
 	}
