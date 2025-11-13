@@ -2,8 +2,10 @@ package main
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"os"
 	"slices"
@@ -12,12 +14,11 @@ import (
 	"github.com/aminnairi/gouache/lib/fs"
 	"github.com/aminnairi/gouache/lib/logger"
 	"github.com/aminnairi/gouache/lib/number"
+	"github.com/charmbracelet/huh"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/charmbracelet/lipgloss/table"
 	"github.com/spf13/cobra"
 )
-
-// TODO: create a command for generating requests interactively using https://github.com/charmbracelet/huh
 
 type Options struct {
 	WithBody    bool
@@ -27,7 +28,6 @@ type Options struct {
 
 func main() {
 	options := Options{}
-	arguments := []string{}
 
 	rootCommand := &cobra.Command{
 		Use:   "gouache",
@@ -36,16 +36,275 @@ func main() {
 	}
 
 	requestCommand := &cobra.Command{
-		Use:   "request file.request",
+		Use:   "request file.http",
 		Short: "Send HTTP requests",
 		Long:  "Send HTTP requests to the provided file or folder containing files for each one of your HTTP requests",
 		Args:  cobra.MinimumNArgs(1),
+		Run: func(cmd *cobra.Command, arguments []string) {
+			allowedMethods := []string{"GET", "POST", "PATCH", "DELETE", "PUT"}
+			filePaths := []string{}
+
+			if len(arguments) == 0 {
+				logger.Fatal("No file or folder provided.")
+			}
+
+			for _, argument := range arguments {
+				for filePath := range fs.Files(argument) {
+					if !strings.HasSuffix(filePath, ".http") {
+						logger.Warning("File", filePath, "ignored because it does not have the suffix .http")
+						continue
+					}
+
+					filePaths = append(filePaths, filePath)
+				}
+			}
+
+			for _, filePath := range filePaths {
+				logger.Info("Sending request from file", filePath)
+
+				stat, statError := os.Stat(filePath)
+
+				if statError != nil {
+					logger.Fatal("File", filePath, "does not exist or is not readable.")
+				}
+
+				if stat.IsDir() {
+					logger.Fatal("Provided request should not be a directory, but rather a path to a file")
+				}
+
+				file, openError := os.Open(filePath)
+
+				if openError != nil {
+					logger.Fatal("Unable to open file:", openError)
+				}
+
+				scanner := bufio.NewScanner(file)
+
+				if !scanner.Scan() {
+					logger.Fatal("Expected a request line, got nothing.")
+				}
+
+				line := scanner.Text()
+				parts := strings.Split(line, " ")
+
+				if len(parts) != 3 {
+					logger.Fatal("Invaid line encountered for line:", parts)
+				}
+
+				method := parts[0]
+				validMethod := slices.Contains(allowedMethods, method)
+
+				if !validMethod {
+					logger.Fatal("Invalid method:", method, "expected one of the following:", strings.Join(allowedMethods, ", "))
+				}
+
+				path := parts[1]
+				version := parts[2]
+
+				if version != "HTTP/2" {
+					logger.Fatal("HTTP version must be HTTP/2")
+				}
+
+				if !scanner.Scan() {
+					logger.Fatal("Request must contain at least one header")
+				}
+
+				hostHeader := scanner.Text()
+				hostHeaderParts := strings.Split(hostHeader, ": ")
+
+				if len(hostHeaderParts) != 2 {
+					logger.Fatal("Header must be in the following format: HeaderName: HeaderValue")
+				}
+
+				hostHeaderName := strings.Trim(hostHeaderParts[0], " ")
+				hostHeaderValue := strings.Trim(hostHeaderParts[1], " ")
+
+				if hostHeaderName != "Host" {
+					logger.Fatal("First header must be the Host header")
+				}
+
+				isHeaderPrefixedWithHTTP := strings.HasPrefix(hostHeaderValue, "http://")
+				isHeaderPrefixedWithHTTPS := strings.HasPrefix(hostHeaderValue, "https://")
+				isHeaderCorrectlyPrefixed := isHeaderPrefixedWithHTTP || isHeaderPrefixedWithHTTPS
+
+				if !isHeaderCorrectlyPrefixed {
+					logger.Fatal("Host header value should starts with http:// or https://")
+				}
+
+				request, requestError := http.NewRequest(method, fmt.Sprint(hostHeaderValue, path), nil)
+
+				isBody := false
+				requestBody := ""
+
+				for scanner.Scan() {
+					if isBody {
+						requestBody += scanner.Text()
+						continue
+					}
+
+					header := scanner.Text()
+
+					if len(strings.Trim(header, " ")) == 0 {
+						isBody = true
+						continue
+					}
+
+					headerParts := strings.Split(header, ": ")
+
+					if len(headerParts) != 2 {
+						logger.Fatal("Header must be in the following format: HeaderName: HeaderValue")
+					}
+
+					headerName := strings.Trim(headerParts[0], " ")
+					headerValue := strings.Trim(headerParts[1], " ")
+
+					request.Header.Add(headerName, headerValue)
+				}
+
+				client := &http.Client{}
+
+				if requestError != nil {
+					logger.Fatal("Unable to run request:", requestError)
+				}
+
+				response, clientError := client.Do(request)
+
+				if clientError != nil {
+					logger.Fatal("Error while running the request:", clientError)
+				}
+
+				if options.WithStatus {
+					if number.IntBetween(100, 199, response.StatusCode) {
+						logger.HTTPInformational(response.Status)
+					} else if number.IntBetween(200, 299, response.StatusCode) {
+						logger.HTTPSuccess(response.Status)
+					} else if number.IntBetween(300, 399, response.StatusCode) {
+						logger.HTTPRedirection(response.Status)
+					} else if number.IntBetween(400, 499, response.StatusCode) {
+						logger.HTTPClientError(response.Status)
+					} else if number.IntBetween(500, 599, response.StatusCode) {
+						logger.HTTPServerError(response.Status)
+					} else {
+						fmt.Println("HTTP/2", response.Status)
+					}
+				}
+
+				if options.WithHeaders {
+					headersTable := table.New().BorderStyle(lipgloss.NewStyle().Foreground(lipgloss.Color("#01579B"))).Headers("Header", "Value")
+
+					for headerName, headerValues := range response.Header {
+						headersTable.Row(headerName, strings.Join(headerValues, ", "))
+					}
+
+					fmt.Println(headersTable)
+				}
+
+				if options.WithBody {
+					responseBytes, responseError := io.ReadAll(response.Body)
+
+					if responseError != nil {
+						logger.Fatal("Unable to fetch the response body:", responseError)
+					}
+
+					fmt.Println(string(responseBytes))
+				}
+
+				closeError := file.Close()
+
+				if closeError != nil {
+					logger.Fatal("Error while closing file:", closeError)
+				}
+			}
+		},
+	}
+
+	generateCommand := &cobra.Command{
+		Use:   "generate index.http",
+		Short: "Generate a request",
+		Long:  "Generate a request in the HTTP format",
+		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			arguments = args
+			confirmation := false
+			filePath := "index.http"
+			httpMethod := "GET"
+			httpHostHeader := "https://jsonplaceholder.typicode.com"
+			httpPath := "/users"
+
+			form := huh.NewForm(
+				huh.NewGroup(
+					huh.NewInput().Title("Name of the file").Validate(func(value string) error {
+						if strings.HasSuffix(value, ".http") {
+							return nil
+						}
+
+						return errors.New("file should end in .http")
+					}).Value(&filePath),
+					huh.NewSelect[string]().Title("HTTP method").Options(
+						huh.NewOption("GET", "GET"),
+						huh.NewOption("POST", "POST"),
+						huh.NewOption("GET", "GET"),
+						huh.NewOption("PATCH", "PATCH"),
+						huh.NewOption("DELETE", "DELETE"),
+					).Value(&httpMethod),
+					huh.NewInput().Title("Path for the HTTP request").Validate(func(value string) error {
+						if strings.HasPrefix(value, "/") {
+							return nil
+						}
+
+						return errors.New("path must start with /")
+					}).Value(&httpPath),
+					huh.NewInput().Title("Host name").Validate(func(value string) error {
+						if strings.HasPrefix(value, "http://") || strings.HasPrefix(value, "https://") {
+							return nil
+						}
+
+						return errors.New("must start with http:// or https://")
+					}).Value(&httpHostHeader),
+					huh.NewConfirm().Title("Save the request?").Affirmative("Save").Negative("Cancel").Value(&confirmation),
+				),
+			)
+
+			if runError := form.Run(); runError != nil {
+				log.Fatal("Error while running the form:", runError)
+			}
+
+			if !confirmation {
+				logger.Info("Okay understood, I won't create anything.")
+				return
+			}
+
+			if fs.FileExist(filePath) {
+				confirmation = false
+
+				confirmForm := huh.NewForm(
+					huh.NewGroup(
+						huh.NewConfirm().Title("File already exists").Affirmative("Overwrite").Negative("Cancel").Value(&confirmation),
+					),
+				)
+
+				if confirmFormRunError := confirmForm.Run(); confirmFormRunError != nil {
+					log.Fatal("Failed to confirm overwriting of file", filePath)
+				}
+			}
+
+			if !confirmation {
+				logger.Info("Okay, I won't overwrite the file.")
+				return
+			}
+
+			logger.Info("Okay, I'll create the file for you!")
+			data := fmt.Sprintf("%s %s HTTP/2\nHost: %s\n", httpMethod, httpPath, httpHostHeader)
+
+			if writeError := os.WriteFile(filePath, []byte(data), 0o644); writeError != nil {
+				logger.Fatal("i can't write the file", filePath, "because:", writeError)
+			}
+
+			logger.Info("wrote new request to file", filePath)
 		},
 	}
 
 	rootCommand.AddCommand(requestCommand)
+	rootCommand.AddCommand(generateCommand)
 
 	requestCommand.Flags().BoolVarP(&options.WithBody, "with-body", "b", false, "Display the raw body of the response")
 	requestCommand.Flags().BoolVarP(&options.WithStatus, "with-status", "s", false, "Display the status line of the response")
@@ -53,180 +312,5 @@ func main() {
 
 	if commandError := rootCommand.Execute(); commandError != nil {
 		logger.Fatal("Error when executing the command:", commandError)
-	}
-
-	allowedMethods := []string{"GET", "POST", "PATCH", "DELETE", "PUT"}
-	filePaths := []string{}
-
-	if len(arguments) == 0 {
-		logger.Fatal("No file or folder provided.")
-	}
-
-	for _, argument := range arguments {
-		for filePath := range fs.Files(argument) {
-			if !strings.HasSuffix(filePath, ".http") {
-				logger.Warning("File", filePath, "ignored because it does not have the suffix .http")
-				continue
-			}
-
-			filePaths = append(filePaths, filePath)
-		}
-	}
-
-	for _, filePath := range filePaths {
-		logger.Info("Sending request from file", filePath)
-
-		stat, statError := os.Stat(filePath)
-
-		if statError != nil {
-			logger.Fatal("File", filePath, "does not exist or is not readable.")
-		}
-
-		if stat.IsDir() {
-			logger.Fatal("Provided request should not be a directory, but rather a path to a file")
-		}
-
-		file, openError := os.Open(filePath)
-
-		if openError != nil {
-			logger.Fatal("Unable to open file:", openError)
-		}
-
-		scanner := bufio.NewScanner(file)
-
-		if !scanner.Scan() {
-			logger.Fatal("Expected a request line, got nothing.")
-		}
-
-		line := scanner.Text()
-		parts := strings.Split(line, " ")
-
-		if len(parts) != 3 {
-			logger.Fatal("Invaid line encountered for line:", parts)
-		}
-
-		method := parts[0]
-		validMethod := slices.Contains(allowedMethods, method)
-
-		if !validMethod {
-			logger.Fatal("Invalid method:", method, "expected one of the following:", strings.Join(allowedMethods, ", "))
-		}
-
-		path := parts[1]
-		version := parts[2]
-
-		if version != "HTTP/2" {
-			logger.Fatal("HTTP version must be HTTP/2")
-		}
-
-		if !scanner.Scan() {
-			logger.Fatal("Request must contain at least one header")
-		}
-
-		hostHeader := scanner.Text()
-		hostHeaderParts := strings.Split(hostHeader, ": ")
-
-		if len(hostHeaderParts) != 2 {
-			logger.Fatal("Header must be in the following format: HeaderName: HeaderValue")
-		}
-
-		hostHeaderName := strings.Trim(hostHeaderParts[0], " ")
-		hostHeaderValue := strings.Trim(hostHeaderParts[1], " ")
-
-		if hostHeaderName != "Host" {
-			logger.Fatal("First header must be the Host header")
-		}
-
-		isHeaderPrefixedWithHTTP := strings.HasPrefix(hostHeaderValue, "http://")
-		isHeaderPrefixedWithHTTPS := strings.HasPrefix(hostHeaderValue, "https://")
-		isHeaderCorrectlyPrefixed := isHeaderPrefixedWithHTTP || isHeaderPrefixedWithHTTPS
-
-		if !isHeaderCorrectlyPrefixed {
-			logger.Fatal("Host header value should starts with http:// or https://")
-		}
-
-		request, requestError := http.NewRequest(method, fmt.Sprint(hostHeaderValue, path), nil)
-
-		isBody := false
-		requestBody := ""
-
-		for scanner.Scan() {
-			if isBody {
-				requestBody += scanner.Text()
-				continue
-			}
-
-			header := scanner.Text()
-
-			if len(strings.Trim(header, " ")) == 0 {
-				isBody = true
-				continue
-			}
-
-			headerParts := strings.Split(header, ": ")
-
-			if len(headerParts) != 2 {
-				logger.Fatal("Header must be in the following format: HeaderName: HeaderValue")
-			}
-
-			headerName := strings.Trim(headerParts[0], " ")
-			headerValue := strings.Trim(headerParts[1], " ")
-
-			request.Header.Add(headerName, headerValue)
-		}
-
-		client := &http.Client{}
-
-		if requestError != nil {
-			logger.Fatal("Unable to run request:", requestError)
-		}
-
-		response, clientError := client.Do(request)
-
-		if clientError != nil {
-			logger.Fatal("Error while running the request:", clientError)
-		}
-
-		if options.WithStatus {
-			if number.IntBetween(100, 199, response.StatusCode) {
-				logger.HTTPInformational(response.Status)
-			} else if number.IntBetween(200, 299, response.StatusCode) {
-				logger.HTTPSuccess(response.Status)
-			} else if number.IntBetween(300, 399, response.StatusCode) {
-				logger.HTTPRedirection(response.Status)
-			} else if number.IntBetween(400, 499, response.StatusCode) {
-				logger.HTTPClientError(response.Status)
-			} else if number.IntBetween(500, 599, response.StatusCode) {
-				logger.HTTPServerError(response.Status)
-			} else {
-				fmt.Println("HTTP/2", response.Status)
-			}
-		}
-
-		if options.WithHeaders {
-			headersTable := table.New().BorderStyle(lipgloss.NewStyle().Foreground(lipgloss.Color("#01579B"))).Headers("Header", "Value")
-
-			for headerName, headerValues := range response.Header {
-				headersTable.Row(headerName, strings.Join(headerValues, ", "))
-			}
-
-			fmt.Println(headersTable)
-		}
-
-		if options.WithBody {
-			responseBytes, responseError := io.ReadAll(response.Body)
-
-			if responseError != nil {
-				logger.Fatal("Unable to fetch the response body:", responseError)
-			}
-
-			fmt.Println(string(responseBytes))
-		}
-
-		closeError := file.Close()
-
-		if closeError != nil {
-			logger.Fatal("Error while closing file:", closeError)
-		}
 	}
 }
