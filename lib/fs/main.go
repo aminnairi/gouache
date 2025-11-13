@@ -42,3 +42,13 @@ func Files(fileOrDirectoryPath string) func(yield func(filePath string) bool) {
 		}
 	}
 }
+
+func FileExist(path string) bool {
+	fileInfo, error := os.Stat(path)
+
+	if error != nil {
+		return false
+	}
+
+	return fileInfo.Mode().IsRegular()
+}
