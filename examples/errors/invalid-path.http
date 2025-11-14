@@ -1,0 +1,2 @@
+GET users HTTP/2
+Host: https://jsonplaceholder.typicode.com

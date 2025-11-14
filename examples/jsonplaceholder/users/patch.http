@@ -1,0 +1,7 @@
+PATCH /users/10 HTTP/2
+Host: https://jsonplaceholder.typicode.com
+Content-Type: application/json
+
+{
+  "email": "other@domain.com"
+}

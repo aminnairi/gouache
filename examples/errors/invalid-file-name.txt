@@ -1,0 +1,1 @@
+This is invalid because Gouache expects all files to have a .http extension
