@@ -286,6 +286,10 @@ gouache generate post.http \
   --body '{"id":1}'
 ```
 
+> [!TIP]
+> Requests don't necessarily have to have a body, omitting it will not trigger
+> the interactive mode and rather will send the request without body.
+
 #### Generate a request in interactive mode
 
 ```bash
