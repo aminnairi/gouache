@@ -27,6 +27,46 @@ type Options struct {
 	WithStatus  bool
 }
 
+type HTTPRequest struct {
+	filePath string
+	path     string
+	method   string
+	body     string
+	host     string
+}
+
+func (httpRequest HTTPRequest) incomplete() bool {
+	return len(strings.TrimSpace(httpRequest.method)) == 0 ||
+		len(strings.TrimSpace(httpRequest.host)) == 0 ||
+		len(strings.TrimSpace(httpRequest.path)) == 0
+}
+
+func (httpRequest HTTPRequest) invalidHostPrefix() bool {
+	prefixes := []string{"http://", "https://"}
+
+	for _, prefix := range prefixes {
+		if !strings.HasPrefix(httpRequest.host, prefix) {
+			return false
+		}
+	}
+
+	return true
+}
+
+func (httpRequest HTTPRequest) invalidFilePathSuffix() bool {
+	return !strings.HasSuffix(strings.TrimSpace(httpRequest.filePath), ".http")
+}
+
+func (httpRequest HTTPRequest) invalidMethod() bool {
+	allowedMethods := []string{"GET", "POST", "PUT", "PATCH", "DELETE"}
+
+	return !slices.Contains(allowedMethods, httpRequest.method)
+}
+
+func (httpRequest HTTPRequest) invalidPath() bool {
+	return !strings.HasPrefix(strings.TrimSpace(httpRequest.path), "/")
+}
+
 func main() {
 	options := Options{}
 
@@ -219,6 +259,8 @@ func main() {
 		},
 	}
 
+	httpRequest := HTTPRequest{}
+
 	generateCommand := &cobra.Command{
 		Use:   "generate index.http",
 		Short: "Generate a request",
@@ -226,68 +268,89 @@ func main() {
 		Args:  cobra.RangeArgs(0, 1),
 
 		Run: func(cmd *cobra.Command, args []string) {
-			confirmation := false
-			filePath := "index.http"
-			httpMethod := "GET"
-			httpHostHeader := "https://jsonplaceholder.typicode.com"
-			httpPath := "/users"
-			httpBody := ""
+			httpRequest.filePath = args[0]
 
-			form := huh.NewForm(
-				huh.NewGroup(
-					huh.NewInput().Title("Name of the file").Validate(func(value string) error {
-						if strings.HasSuffix(value, ".http") {
-							return nil
-						}
+			if httpRequest.incomplete() {
+				confirmation := false
 
-						return errors.New("file should end in .http")
-					}).Value(&filePath),
-					huh.NewSelect[string]().Title("HTTP method").Options(
-						huh.NewOption("GET", "GET"),
-						huh.NewOption("POST", "POST"),
-						huh.NewOption("GET", "GET"),
-						huh.NewOption("PATCH", "PATCH"),
-						huh.NewOption("DELETE", "DELETE"),
-					).Value(&httpMethod),
-					huh.NewInput().Title("Path for the HTTP request").Validate(func(value string) error {
-						if strings.HasPrefix(value, "/") {
-							return nil
-						}
+				form := huh.NewForm(
+					huh.NewGroup(
+						huh.NewInput().Title("Name of the file").Validate(func(value string) error {
+							if strings.HasSuffix(value, ".http") {
+								return nil
+							}
 
-						return errors.New("path must start with /")
-					}).Value(&httpPath),
-					huh.NewInput().Title("Host name").Validate(func(value string) error {
-						if strings.HasPrefix(value, "http://") || strings.HasPrefix(value, "https://") {
-							return nil
-						}
+							return errors.New("file should end in .http")
+						}).Value(&httpRequest.filePath),
+						huh.NewSelect[string]().Title("HTTP method").Options(
+							huh.NewOption("GET", "GET"),
+							huh.NewOption("POST", "POST"),
+							huh.NewOption("GET", "GET"),
+							huh.NewOption("PATCH", "PATCH"),
+							huh.NewOption("DELETE", "DELETE"),
+						).Value(&httpRequest.method),
+						huh.NewInput().Title("Path for the HTTP request").Validate(func(value string) error {
+							if strings.HasPrefix(value, "/") {
+								return nil
+							}
 
-						return errors.New("must start with http:// or https://")
-					}).Value(&httpHostHeader),
-					huh.NewText().Title("Body of the HTTP request").Value(&httpBody),
-					huh.NewConfirm().Title("Save the request?").Affirmative("Save").Negative("Cancel").Value(&confirmation),
-				),
-			)
+							return errors.New("path must start with /")
+						}).Value(&httpRequest.path),
+						huh.NewInput().Title("Host name").Validate(func(value string) error {
+							if strings.HasPrefix(value, "http://") || strings.HasPrefix(value, "https://") {
+								return nil
+							}
 
-			if runError := form.Run(); runError != nil {
-				logger.Fatal("Error while running the form:", runError)
+							return errors.New("must start with http:// or https://")
+						}).Value(&httpRequest.host),
+						huh.NewText().Title("Body of the HTTP request").Value(&httpRequest.body),
+						huh.NewConfirm().Title("Save the request?").Affirmative("Save").Negative("Cancel").Value(&confirmation),
+					),
+				)
+
+				if runError := form.Run(); runError != nil {
+					logger.Fatal("Error while running the form:", runError)
+				}
+
+				if !confirmation {
+					logger.Info("Okay understood, I won't create anything.")
+					return
+				}
 			}
 
-			if !confirmation {
-				logger.Info("Okay understood, I won't create anything.")
-				return
+			if httpRequest.invalidHostPrefix() {
+				logger.Fatal("Host must start with either http:// or https://, got", httpRequest.host)
 			}
 
-			directoryPath := filepath.Dir(filePath)
+			if httpRequest.invalidFilePathSuffix() {
+				logger.Fatal("File path must end with .http, got", httpRequest.filePath)
+			}
+
+			if httpRequest.invalidMethod() {
+				logger.Fatal("Method is invalid and must be one of the following: GET, POST, PATCH, PUT, DELETE, got", httpRequest.method)
+			}
+
+			if httpRequest.invalidPath() {
+				logger.Fatal("Path must start with a /, got ", httpRequest.path)
+			}
+
+			directoryPath := filepath.Dir(httpRequest.filePath)
 
 			if !fs.FolderExists(directoryPath) {
+				directoryCreationConfirmation := false
+
 				directoryCreationForm := huh.NewForm(
 					huh.NewGroup(
-						huh.NewConfirm().Title(fmt.Sprintln("Directory", directoryPath, "does not exist")).Affirmative("Create").Negative("Cancel"),
+						huh.NewConfirm().Title(fmt.Sprintln("Directory", directoryPath, "does not exist")).Affirmative("Create").Negative("Cancel").Value(&directoryCreationConfirmation),
 					),
 				)
 
 				if directoryCreationFormRunError := directoryCreationForm.Run(); directoryCreationFormRunError != nil {
-					logger.Fatal("Okay, not creating directory and exiting this program.")
+					logger.Fatal("Failed to run the form directory:", directoryCreationFormRunError)
+				}
+
+				if !directoryCreationConfirmation {
+					log.Fatal("Not creating any directory.")
 				}
 
 				if mkdirError := os.MkdirAll(directoryPath, 0o755); mkdirError != nil {
@@ -295,45 +358,40 @@ func main() {
 				}
 			}
 
-			if !confirmation {
-				logger.Info("Okay understood, I won't create anything.")
-				return
-			}
-
-			if fs.FileExist(filePath) {
-				confirmation = false
+			if fs.FileExist(httpRequest.filePath) {
+				overwriteExistingFile := false
 
 				confirmForm := huh.NewForm(
 					huh.NewGroup(
-						huh.NewConfirm().Title("File already exists").Affirmative("Overwrite").Negative("Cancel").Value(&confirmation),
+						huh.NewConfirm().Title("File already exists").Affirmative("Overwrite").Negative("Cancel").Value(&overwriteExistingFile),
 					),
 				)
 
 				if confirmFormRunError := confirmForm.Run(); confirmFormRunError != nil {
-					log.Fatal("Failed to confirm overwriting of file", filePath)
+					log.Fatal("Failed to confirm overwriting of file", httpRequest.filePath)
+				}
+
+				if !overwriteExistingFile {
+					logger.Info("Okay, I won't overwrite the file.")
+					return
 				}
 			}
 
-			if !confirmation {
-				logger.Info("Okay, I won't overwrite the file.")
-				return
-			}
-
 			logger.Info("Okay, I'll create the file for you!")
-			data := fmt.Sprintf("%s %s HTTP/2\nHost: %s\n", httpMethod, httpPath, httpHostHeader)
+			data := fmt.Sprintf("%s %s HTTP/2\nHost: %s\n", httpRequest.method, httpRequest.path, httpRequest.host)
 
-			httpBody = strings.TrimSpace(httpBody)
+			httpRequest.body = strings.TrimSpace(httpRequest.body)
 
-			if len(httpBody) != 0 {
+			if len(httpRequest.body) != 0 {
 				data += fmt.Sprintln("")
-				data += fmt.Sprintln(httpBody)
+				data += fmt.Sprintln(httpRequest.body)
 			}
 
-			if writeError := os.WriteFile(filePath, []byte(data), 0o644); writeError != nil {
-				logger.Fatal("i can't write the file", filePath, "because:", writeError)
+			if writeError := os.WriteFile(httpRequest.filePath, []byte(data), 0o644); writeError != nil {
+				logger.Fatal("i can't write the file", httpRequest.filePath, "because:", writeError)
 			}
 
-			logger.Info("wrote new request to file", filePath)
+			logger.Info("wrote new request to file", httpRequest.filePath)
 		},
 	}
 
@@ -343,6 +401,11 @@ func main() {
 	requestCommand.Flags().BoolVarP(&options.WithBody, "with-body", "b", false, "Display the raw body of the response")
 	requestCommand.Flags().BoolVarP(&options.WithStatus, "with-status", "s", false, "Display the status line of the response")
 	requestCommand.Flags().BoolVarP(&options.WithHeaders, "with-headers", "H", false, "Display the headers of the response")
+
+	generateCommand.Flags().StringVarP(&httpRequest.method, "method", "m", "", "HTTP method, either GET, POST, PUT, PATCH or DELETE")
+	generateCommand.Flags().StringVarP(&httpRequest.host, "host", "H", "", "Value for the Host header, must start with either http:// or https://")
+	generateCommand.Flags().StringVarP(&httpRequest.body, "body", "b", "", "Body for the HTTP request")
+	generateCommand.Flags().StringVarP(&httpRequest.path, "path", "p", "", "Path for the HTTP request")
 
 	if commandError := rootCommand.Execute(); commandError != nil {
 		logger.Fatal("Error when executing the command:", commandError)
