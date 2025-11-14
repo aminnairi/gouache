@@ -231,6 +231,7 @@ func main() {
 			httpMethod := "GET"
 			httpHostHeader := "https://jsonplaceholder.typicode.com"
 			httpPath := "/users"
+			httpBody := ""
 
 			form := huh.NewForm(
 				huh.NewGroup(
@@ -262,6 +263,7 @@ func main() {
 
 						return errors.New("must start with http:// or https://")
 					}).Value(&httpHostHeader),
+					huh.NewText().Title("Body of the HTTP request").Value(&httpBody),
 					huh.NewConfirm().Title("Save the request?").Affirmative("Save").Negative("Cancel").Value(&confirmation),
 				),
 			)
@@ -269,8 +271,6 @@ func main() {
 			if runError := form.Run(); runError != nil {
 				logger.Fatal("Error while running the form:", runError)
 			}
-
-			// TODO: add body multiline input
 
 			if !confirmation {
 				logger.Info("Okay understood, I won't create anything.")
@@ -282,7 +282,7 @@ func main() {
 			if !fs.FolderExists(directoryPath) {
 				directoryCreationForm := huh.NewForm(
 					huh.NewGroup(
-						huh.NewConfirm().Title(fmt.Sprint("Directory", directoryPath, "does not exist")).Affirmative("Create").Negative("Cancel"),
+						huh.NewConfirm().Title(fmt.Sprintln("Directory", directoryPath, "does not exist")).Affirmative("Create").Negative("Cancel"),
 					),
 				)
 
@@ -294,8 +294,6 @@ func main() {
 					logger.Fatal("failed to create folder:", mkdirError)
 				}
 			}
-
-			// TODO: add body multiline input
 
 			if !confirmation {
 				logger.Info("Okay understood, I won't create anything.")
@@ -323,6 +321,13 @@ func main() {
 
 			logger.Info("Okay, I'll create the file for you!")
 			data := fmt.Sprintf("%s %s HTTP/2\nHost: %s\n", httpMethod, httpPath, httpHostHeader)
+
+			httpBody = strings.TrimSpace(httpBody)
+
+			if len(httpBody) != 0 {
+				data += fmt.Sprintln("")
+				data += fmt.Sprintln(httpBody)
+			}
 
 			if writeError := os.WriteFile(filePath, []byte(data), 0o644); writeError != nil {
 				logger.Fatal("i can't write the file", filePath, "because:", writeError)
