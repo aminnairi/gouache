@@ -269,7 +269,11 @@ func main() {
 		Args:  cobra.RangeArgs(0, 1),
 
 		Run: func(cmd *cobra.Command, args []string) {
-			httpRequest.filePath = args[0]
+			if len(args) == 0 {
+				httpRequest.filePath = "index.http"
+			} else {
+				httpRequest.filePath = args[0]
+			}
 
 			if httpRequest.incomplete() {
 				confirmation := false
