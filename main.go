@@ -14,6 +14,7 @@ import (
 	"github.com/aminnairi/gouache/lib/fs"
 	"github.com/aminnairi/gouache/lib/logger"
 	"github.com/aminnairi/gouache/lib/number"
+	"github.com/aminnairi/gouache/lib/slicesextra"
 	"github.com/charmbracelet/huh"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/charmbracelet/lipgloss/table"
@@ -126,15 +127,15 @@ func main() {
 					logger.Fatal("Invaid line encountered for line:", parts)
 				}
 
-				method := parts[0]
+				method := slicesextra.At(0, "", parts)
 				validMethod := slices.Contains(allowedMethods, method)
 
 				if !validMethod {
 					logger.Fatal("Invalid method:", method, "expected one of the following:", strings.Join(allowedMethods, ", "))
 				}
 
-				path := parts[1]
-				version := parts[2]
+				path := slicesextra.At(1, "", parts)
+				version := slicesextra.At(2, "", parts)
 
 				if version != "HTTP/2" {
 					logger.Fatal("HTTP version must be HTTP/2")
@@ -151,8 +152,8 @@ func main() {
 					logger.Fatal("Header must be in the following format: HeaderName: HeaderValue")
 				}
 
-				hostHeaderName := strings.Trim(hostHeaderParts[0], " ")
-				hostHeaderValue := strings.Trim(hostHeaderParts[1], " ")
+				hostHeaderName := strings.Trim(slicesextra.At(0, "", hostHeaderParts), " ")
+				hostHeaderValue := strings.Trim(slicesextra.At(1, "", hostHeaderParts), " ")
 
 				if hostHeaderName != "Host" {
 					logger.Fatal("First header must be the Host header")
@@ -262,11 +263,7 @@ func main() {
 		Args:  cobra.RangeArgs(0, 1),
 
 		Run: func(cmd *cobra.Command, args []string) {
-			if len(args) == 0 {
-				httpRequest.filePath = "index.http"
-			} else {
-				httpRequest.filePath = args[0]
-			}
+			httpRequest.filePath = slicesextra.At(0, "index.http", args)
 
 			if httpRequest.incomplete() {
 				confirmation := false
