@@ -22,9 +22,6 @@ Host: https://jsonplaceholder.typicode.com
 Accept: application/json
 ```
 
-> [!WARNING]
-> There should only be one HTTP request per `*.http` file.
-
 Install the binary as a global command.
 
 ```bash
@@ -32,11 +29,6 @@ go install github.com/aminnairi/gouache
 ```
 
 Run your request.
-
-> [!WARNING]
-> You should have the path to go installed binaries [already
-> setup](https://go.dev/wiki/SettingGOPATH) in order for your terminal to have
-> access to this program.
 
 ```bash
 gouache request --with-status --with-headers --with-body index.http
@@ -80,6 +72,11 @@ Cache-Control: max-age=43200
 go install github.com/aminnairi/gouache
 ```
 
+> [!WARNING]
+> You should have the path to go installed binaries [already
+> setup](https://go.dev/wiki/SettingGOPATH) in order for your terminal to have
+> access to this program.
+
 ## 👋 Uninstallation
 
 > [!NOTE]
@@ -110,6 +107,9 @@ touch get.http
 GET /users HTTP/2
 Host: https://jsonplaceholder.typicode.com/users
 ```
+
+> [!WARNING]
+> There should only be one HTTP request per `*.http` file.
 
 ```bash
 gouache request get.http
