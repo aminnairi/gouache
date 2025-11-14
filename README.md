@@ -115,12 +115,6 @@ Host: https://jsonplaceholder.typicode.com/users
 gouache request get.http
 ```
 
-#### Send a request
-
-```bash
-gouache request get.http
-```
-
 #### Display the status line of the response
 
 ```bash
