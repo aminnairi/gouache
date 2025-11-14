@@ -52,3 +52,13 @@ func FileExist(path string) bool {
 
 	return fileInfo.Mode().IsRegular()
 }
+
+func FolderExists(path string) bool {
+	folderStat, statError := os.Stat(path)
+
+	if statError != nil {
+		return false
+	}
+
+	return folderStat.IsDir()
+}
