@@ -268,38 +268,28 @@ func main() {
 				logger.Fatal("Error while running the form:", runError)
 			}
 
-			continueAddingHeaders := true
-			headers := map[string]string{}
+			// TODO: add body multiline input
 
-			for {
-				headerName := "Content-Type"
-				headerValue := "application/json"
+			if !confirmation {
+				logger.Info("Okay understood, I won't create anything.")
+				return
+			}
 
-				headersForm := huh.NewForm(
+			directoryPath := filepath.Dir(filePath)
+
+			if !fs.FolderExists(directoryPath) {
+				directoryCreationForm := huh.NewForm(
 					huh.NewGroup(
-						huh.NewInput().Title("Header name").Value(&headerName),
-						huh.NewInput().Title("Header value").Value(&headerValue),
+						huh.NewConfirm().Title(fmt.Sprint("Directory", directoryPath, "does not exist")).Affirmative("Create").Negative("Cancel"),
 					),
 				)
 
-				if headerFormRunError := headersForm.Run(); headerFormRunError != nil {
-					logger.Fatal("Unable to run form for headers")
+				if directoryCreationFormRunError := directoryCreationForm.Run(); directoryCreationFormRunError != nil {
+					logger.Fatal("Okay, not creating directory and exiting this program.")
 				}
 
-				headers[headerName] = headerValue
-
-				continueForm := huh.NewForm(
-					huh.NewGroup(
-						huh.NewConfirm().Title("Continue adding headers?").Affirmative("Continue").Negative("Finish").Value(&continueAddingHeaders),
-					),
-				)
-
-				if continueFormRunError := continueForm.Run(); continueFormRunError != nil {
-					logger.Fatal("Failed to run the continuation headers form")
-				}
-
-				if !continueAddingHeaders {
-					break
+				if mkdirError := os.MkdirAll(directoryPath, 0o755); mkdirError != nil {
+					logger.Fatal("failed to create folder:", mkdirError)
 				}
 			}
 
@@ -331,10 +321,6 @@ func main() {
 
 			logger.Info("Okay, I'll create the file for you!")
 			data := fmt.Sprintf("%s %s HTTP/2\nHost: %s\n", httpMethod, httpPath, httpHostHeader)
-
-			for headerName, headerValue := range headers {
-				data += fmt.Sprintf("%s: %s\n", headerName, headerValue)
-			}
 
 			if writeError := os.WriteFile(filePath, []byte(data), 0o644); writeError != nil {
 				logger.Fatal("i can't write the file", filePath, "because:", writeError)
