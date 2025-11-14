@@ -9,7 +9,7 @@ import (
 )
 
 func Fatal(messages ...any) {
-	errorStyle := lipgloss.NewStyle().Bold(true).Background(lipgloss.Color("#B00020")).Foreground(lipgloss.Color("#FFFFFF")).PaddingLeft(1).PaddingRight(1)
+	errorStyle := lipgloss.NewStyle().Bold(true).Background(lipgloss.Color("#B00020")).Foreground(lipgloss.Color("#FFFFFF")).PaddingLeft(1).PaddingRight(1).Width(9).Align(lipgloss.Center)
 	allMessages := []any{errorStyle.Render("ERROR")}
 	allMessages = append(allMessages, messages...)
 
@@ -26,8 +26,16 @@ func Warning(messages ...any) {
 }
 
 func Info(messages ...any) {
-	errorStyle := lipgloss.NewStyle().Bold(true).Background(lipgloss.Color("#01579B")).Foreground(lipgloss.Color("#FFFFFF")).PaddingLeft(1).PaddingRight(1)
+	errorStyle := lipgloss.NewStyle().Bold(true).Background(lipgloss.Color("#01579B")).Foreground(lipgloss.Color("#FFFFFF")).PaddingLeft(1).PaddingRight(1).Width(9).Align(lipgloss.Center)
 	allMessages := []any{errorStyle.Render("INFO")}
+	allMessages = append(allMessages, messages...)
+
+	fmt.Println(allMessages...)
+}
+
+func Success(messages ...any) {
+	errorStyle := lipgloss.NewStyle().Bold(true).Background(lipgloss.Color("#1B5E20")).Foreground(lipgloss.Color("#FFFFFF")).PaddingLeft(1).PaddingRight(1).Width(9).Align(lipgloss.Center)
+	allMessages := []any{errorStyle.Render("SUCCESS")}
 	allMessages = append(allMessages, messages...)
 
 	fmt.Println(allMessages...)
