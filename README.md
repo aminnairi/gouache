@@ -265,12 +265,12 @@ gouache request --with-status requests
 gouache generate get.http \
   --method GET \
   --path /users \
-  --host https://jsonplaceholder.typicode.com
+  --url https://jsonplaceholder.typicode.com
 # or
 gouache generate get.http \
   -m GET \
   -p /users \
-  -H https://jsonplaceholder.typicode.com
+  -u https://jsonplaceholder.typicode.com
 ```
 
 > [!TIP]
@@ -284,7 +284,7 @@ gouache generate get.http \
 gouache generate post.http \
   --method GET \
   --path /users \
-  --host https://jsonplaceholder.typicode.com \
+  --url https://jsonplaceholder.typicode.com \
   --body '{"id":1}'
 ```
 

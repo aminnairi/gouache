@@ -32,20 +32,20 @@ type HTTPRequest struct {
 	path     string
 	method   string
 	body     string
-	host     string
+	url      string
 }
 
 func (httpRequest HTTPRequest) incomplete() bool {
 	return len(strings.TrimSpace(httpRequest.method)) == 0 ||
-		len(strings.TrimSpace(httpRequest.host)) == 0 ||
+		len(strings.TrimSpace(httpRequest.url)) == 0 ||
 		len(strings.TrimSpace(httpRequest.path)) == 0
 }
 
-func (httpRequest HTTPRequest) invalidHostPrefix() bool {
+func (httpRequest HTTPRequest) invalidURLPrefix() bool {
 	prefixes := []string{"http://", "https://"}
 
 	for _, prefix := range prefixes {
-		if !strings.HasPrefix(httpRequest.host, prefix) {
+		if !strings.HasPrefix(httpRequest.url, prefix) {
 			return false
 		}
 	}
@@ -291,13 +291,13 @@ func main() {
 
 							return errors.New("path must start with /")
 						}).Value(&httpRequest.path),
-						huh.NewInput().Title("Host name").Validate(func(value string) error {
+						huh.NewInput().Title("URL").Validate(func(value string) error {
 							if strings.HasPrefix(value, "http://") || strings.HasPrefix(value, "https://") {
 								return nil
 							}
 
 							return errors.New("must start with http:// or https://")
-						}).Value(&httpRequest.host),
+						}).Value(&httpRequest.url),
 						huh.NewText().Title("Body of the HTTP request").Value(&httpRequest.body),
 						huh.NewConfirm().Title("Save the request?").Affirmative("Save").Negative("Cancel").Value(&confirmation),
 					),
@@ -313,8 +313,8 @@ func main() {
 				}
 			}
 
-			if httpRequest.invalidHostPrefix() {
-				logger.Fatal("Host must start with either http:// or https://, got", httpRequest.host)
+			if httpRequest.invalidURLPrefix() {
+				logger.Fatal("Host must start with either http:// or https://, got", httpRequest.url)
 			}
 
 			if httpRequest.invalidFilePathSuffix() {
@@ -373,7 +373,7 @@ func main() {
 			}
 
 			logger.Info("Okay, I'll create the file for you!")
-			data := fmt.Sprintf("%s %s HTTP/2\nHost: %s\n", httpRequest.method, httpRequest.path, httpRequest.host)
+			data := fmt.Sprintf("%s %s HTTP/2\nHost: %s\n", httpRequest.method, httpRequest.path, httpRequest.url)
 
 			httpRequest.body = strings.TrimSpace(httpRequest.body)
 
@@ -398,8 +398,7 @@ func main() {
 	requestCommand.Flags().BoolVarP(&options.WithHeaders, "with-headers", "H", false, "Display the headers of the response")
 
 	generateCommand.Flags().StringVarP(&httpRequest.method, "method", "m", "", "HTTP method, either GET, POST, PUT, PATCH or DELETE")
-	// TODO: renamed using --url instead of --host to prevent conflicting with the future --header option
-	generateCommand.Flags().StringVarP(&httpRequest.host, "host", "H", "", "Value for the Host header, must start with either http:// or https://")
+	generateCommand.Flags().StringVarP(&httpRequest.url, "url", "u", "", "Value for the Host header, must start with either http:// or https://")
 	generateCommand.Flags().StringVarP(&httpRequest.body, "body", "b", "", "Body for the HTTP request")
 	generateCommand.Flags().StringVarP(&httpRequest.path, "path", "p", "", "Path for the HTTP request")
 
