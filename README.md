@@ -62,6 +62,7 @@ Cache-Control: max-age=43200
 - It's just HTTP protocol and nothing else
 - Run requests right from your terminal
 - Run all requests from a folder recursively
+- Generate request files in an interactive or programmatic way
 
 ## 🏃 Installation
 
