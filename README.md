@@ -1,4 +1,4 @@
-# gouache
+# 🖌️ gouache
 
 Create HTTP requests from files and run them right from your terminal
 
@@ -6,7 +6,7 @@ Create HTTP requests from files and run them right from your terminal
 > The name of this library, `gouache`, pronounced _/ɡwɑːʃ/_, is a french word representing a type
 > of paint that can react to water to update or create a new painting.
 
-## Usage
+## 🤔 Usage
 
 Create a new HTTP request.
 
@@ -64,14 +64,14 @@ Cache-Control: max-age=43200
 ...
 ```
 
-## Features
+## ✨ Features
 
 - Write HTTP requests in a friendly format
 - It's just HTTP protocol and nothing else
 - Run requests right from your terminal
 - Run all requests from a folder recursively
 
-## Installation
+## 🏃 Installation
 
 > [!NOTE]
 > This commands needs to be run inside of a terminal with access to the `go` binary.
@@ -80,7 +80,7 @@ Cache-Control: max-age=43200
 go install github.com/aminnairi/gouache
 ```
 
-## Uninstallation
+## 👋 Uninstallation
 
 > [!NOTE]
 > The `go` binary does not have a way to uninstall a previously installed
@@ -91,7 +91,7 @@ go install github.com/aminnairi/gouache
 rm -rf $(which gouache)
 ```
 
-## FAQ
+## ❓ FAQ
 
 > [!IMPORTANT]
 > If you are unsure of what the HTTP protocol is, [here is a detailed
@@ -254,18 +254,18 @@ Host: https://jsonplaceholder.typicode.com
 gouache request  --with-status requests
 ```
 
-## License
+## ⚖️ License
 
 See [`LICENSE`](./LICENSE).
 
-## Contributing
+## 🤝 Contributing
 
 See [`CONTRIBUTING.md`](./CONTRIBUTING.md).
 
-## Security
+## 🔒 Security
 
 See [`SECURITY.md`](./SECURITY.md).
 
-## Code of conduct
+## 🫶 Code of conduct
 
 See [`CODE_OF_CONDUCT.md`](./CODE_OF_CONDUCT.md).
