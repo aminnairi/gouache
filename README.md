@@ -93,12 +93,14 @@ rm -rf $(which gouache)
 
 ## ❓ FAQ
 
+### Request
+
+#### Provide an HTTP request from a file
+
 > [!IMPORTANT]
 > If you are unsure of what the HTTP protocol is, [here is a detailed
 > article](https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/Overview)
 > from the Mozilla Developers Network website that explains it well.
-
-### How to create a GET request
 
 ```bash
 touch get.http
@@ -110,10 +112,40 @@ Host: https://jsonplaceholder.typicode.com/users
 ```
 
 ```bash
-gouache request --with-status get.http
+gouache request get.http
 ```
 
-### How to create a POST request
+#### Send a request
+
+```bash
+gouache request get.http
+```
+
+#### Display the status line of the response
+
+```bash
+gouache request --with-status get.http
+# or
+gouache request -s get.http
+```
+
+#### Display the headers of the response
+
+```bash
+gouache request --with-headers get.http
+# or
+gouache request -H get.http
+```
+
+#### Display the body of the request
+
+```bash
+gouache request --with-body get.http
+# or
+gouache request -b get.http
+```
+
+#### Send a POST request
 
 ```bash
 touch post.http
@@ -131,10 +163,10 @@ Content-Type: application/json
 ```
 
 ```bash
-gouache request --with-status post.http
+gouache request post.http
 ```
 
-### How to create a PATCH request
+#### Send a PATCH request
 
 ```bash
 touch patch.http
@@ -151,10 +183,10 @@ Content-Type: application/json
 ```
 
 ```bash
-gouache request --with-status patch.http
+gouache request patch.http
 ```
 
-### How to create a PUT request
+#### Send a PUT request
 
 ```bash
 touch put.http
@@ -174,7 +206,7 @@ Content-Type: application/json
 gouache request --with-status put.http
 ```
 
-### How to create a DELETE request
+#### Send a DELETE request
 
 ```bash
 touch delete.http
@@ -192,34 +224,10 @@ Content-Type: application/json
 ```
 
 ```bash
-gouache request --with-status delete.http
+gouache request delete.http
 ```
 
-### Run a request without output
-
-```bash
-touch create-user.http
-```
-
-```http
-POST /users HTTP/2
-Host: https://jsonplaceholder.typicode.com/users
-Content-Type: application/json
-
-{
-  "id": 11,
-  "email": "user@domain.com"
-}
-```
-
-```bash
-gouache request create-user.http
-```
-
-> [!IMPORTANT]
-> Errors and informations will still be written in the standard error of your terminal.
-
-### Run all requests from a folder recursively
+#### Run all requests from a folder recursively
 
 ```bash
 mkdir requests
@@ -254,7 +262,9 @@ Host: https://jsonplaceholder.typicode.com
 gouache request --with-status requests
 ```
 
-### Generate a request right from the command line
+### Generate
+
+#### Generate a request
 
 ```bash
 gouache generate get.http \
@@ -268,7 +278,7 @@ gouache generate get.http \
   -H https://jsonplaceholder.typicode.com
 ```
 
-### Generate a request with a body
+#### Generate a request with a body
 
 ```bash
 gouache generate post.http \
@@ -278,7 +288,7 @@ gouache generate post.http \
   --body '{"id":1}'
 ```
 
-### Generate a request in interactive mode
+#### Generate a request in interactive mode
 
 ```bash
 gouache generate
