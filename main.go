@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -355,7 +354,7 @@ func main() {
 				}
 
 				if !directoryCreationConfirmation {
-					log.Fatal("Not creating any directory.")
+					logger.Fatal("Not creating any directory.")
 				}
 
 				if mkdirError := os.MkdirAll(directoryPath, 0o755); mkdirError != nil {
@@ -373,7 +372,7 @@ func main() {
 				)
 
 				if confirmFormRunError := confirmForm.Run(); confirmFormRunError != nil {
-					log.Fatal("Failed to confirm overwriting of file", httpRequest.filePath)
+					logger.Fatal("Failed to confirm overwriting of file", httpRequest.filePath)
 				}
 
 				if !overwriteExistingFile {
