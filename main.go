@@ -80,7 +80,8 @@ func main() {
 		Use:   "request file.http",
 		Short: "Send HTTP requests",
 		Long:  "Send HTTP requests to the provided file or folder containing files for each one of your HTTP requests",
-		Args:  cobra.MinimumNArgs(1),
+		// TODO: send a request in interactive mode if no argument is passed
+		Args: cobra.MinimumNArgs(1),
 		Run: func(cmd *cobra.Command, arguments []string) {
 			allowedMethods := []string{"GET", "POST", "PATCH", "DELETE", "PUT"}
 			filePaths := []string{}
