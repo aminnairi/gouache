@@ -290,7 +290,7 @@ func main() {
 						huh.NewSelect[string]().Title("HTTP method").Options(
 							huh.NewOption("GET", "GET"),
 							huh.NewOption("POST", "POST"),
-							huh.NewOption("GET", "GET"),
+							huh.NewOption("PUT", "PUT"),
 							huh.NewOption("PATCH", "PATCH"),
 							huh.NewOption("DELETE", "DELETE"),
 						).Value(&httpRequest.method),
