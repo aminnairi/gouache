@@ -288,7 +288,7 @@ gouache generate post.http \
 
 > [!TIP]
 > Requests don't necessarily have to have a body, omitting it will not trigger
-> the interactive mode and rather will send the request without body.
+> the interactive mode and rather will create the request without body.
 
 #### Generate a request in interactive mode
 
