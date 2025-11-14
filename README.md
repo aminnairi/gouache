@@ -273,8 +273,9 @@ gouache generate get.http \
 ```
 
 > [!TIP]
-> Only providing one of the following: method, path or host will trigger the
-> interactive mode asking you for the remaining informations.
+> Only providing one of the following: method, path or host or the path to the
+> generated HTTP request will trigger the interactive mode asking you for the
+> remaining informations.
 
 #### Generate a request with a body
 
