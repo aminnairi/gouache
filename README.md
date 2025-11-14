@@ -272,6 +272,10 @@ gouache generate get.http \
   -H https://jsonplaceholder.typicode.com
 ```
 
+> [!TIP]
+> Only providing one of the following: method, path or host will trigger the
+> interactive mode asking you for the remaining informations.
+
 #### Generate a request with a body
 
 ```bash
