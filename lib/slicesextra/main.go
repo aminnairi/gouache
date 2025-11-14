@@ -2,7 +2,13 @@
 package slicesextra
 
 func At[Type comparable](index int, fallback Type, items []Type) Type {
-	if len(items) < index {
+	itemsLength := len(items)
+
+	if itemsLength == 0 {
+		return fallback
+	}
+
+	if itemsLength < index {
 		return fallback
 	}
 
