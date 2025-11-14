@@ -103,14 +103,8 @@ func main() {
 			for _, filePath := range filePaths {
 				logger.Info("Sending request from file", filePath)
 
-				stat, statError := os.Stat(filePath)
-
-				if statError != nil {
+				if !fs.FileExist(filePath) {
 					logger.Fatal("File", filePath, "does not exist or is not readable.")
-				}
-
-				if stat.IsDir() {
-					logger.Fatal("Provided request should not be a directory, but rather a path to a file")
 				}
 
 				file, openError := os.Open(filePath)
