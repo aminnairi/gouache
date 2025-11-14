@@ -23,14 +23,14 @@ cd gouache
 ## Run the program
 
 ```bash
-go run . --with-status examples
+go run . request --with-status examples
 ```
 
 ## Build the program
 
 ```bash
 go build
-./gouache --with-status examples
+./gouache request --with-status examples
 ```
 
 ## Install the program as a global binary
