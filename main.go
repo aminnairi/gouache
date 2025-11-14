@@ -408,6 +408,7 @@ func main() {
 	requestCommand.Flags().BoolVarP(&options.WithHeaders, "with-headers", "H", false, "Display the headers of the response")
 
 	generateCommand.Flags().StringVarP(&httpRequest.method, "method", "m", "", "HTTP method, either GET, POST, PUT, PATCH or DELETE")
+	// TODO: renamed using --url instead of --host to prevent conflicting with the future --header option
 	generateCommand.Flags().StringVarP(&httpRequest.host, "host", "H", "", "Value for the Host header, must start with either http:// or https://")
 	generateCommand.Flags().StringVarP(&httpRequest.body, "body", "b", "", "Body for the HTTP request")
 	generateCommand.Flags().StringVarP(&httpRequest.path, "path", "p", "", "Path for the HTTP request")
