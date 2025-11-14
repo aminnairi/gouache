@@ -91,7 +91,7 @@ go install github.com/aminnairi/gouache
 rm -rf $(which gouache)
 ```
 
-## ❓ FAQ
+## ❓ Documentation
 
 ### Request
 
