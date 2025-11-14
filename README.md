@@ -251,21 +251,31 @@ Host: https://jsonplaceholder.typicode.com
 ```
 
 ```bash
-gouache request  --with-status requests
+gouache request --with-status requests
 ```
 
 ### Generate a request right from the command line
 
 ```bash
-gouache generate get.http --method GET --path /users --host https://jsonplaceholder.typicode.com
+gouache generate get.http \
+  --method GET \
+  --path /users \
+  --host https://jsonplaceholder.typicode.com
 # or
-gouache generate get.http -m GET -p /users -H https://jsonplaceholder.typicode.com
+gouache generate get.http \
+  -m GET \
+  -p /users \
+  -H https://jsonplaceholder.typicode.com
 ```
 
 ### Generate a request with a body
 
 ```bash
-gouache generate post.http --method GET --path /users --host https://jsonplaceholder.typicode.com --body '{"id":1}'
+gouache generate post.http \
+  --method GET \
+  --path /users \
+  --host https://jsonplaceholder.typicode.com \
+  --body '{"id":1}'
 ```
 
 ### Generate a request in interactive mode
