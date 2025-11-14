@@ -222,7 +222,8 @@ func main() {
 		Use:   "generate index.http",
 		Short: "Generate a request",
 		Long:  "Generate a request in the HTTP format",
-		Args:  cobra.ExactArgs(1),
+		Args:  cobra.RangeArgs(0, 1),
+
 		Run: func(cmd *cobra.Command, args []string) {
 			confirmation := false
 			filePath := "index.http"
